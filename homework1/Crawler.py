@@ -53,11 +53,9 @@ base_url_en=["https://www.bbc.com","https://www.cnn.com","https://www.foxnews.co
 base_url_ch=["http://www.xinhuanet.com","http://www.chinanews.com","http://www.chinadaily.com.cn","http://www.globaltimes.cn","http://www.ecns.cn"]
 
 class WebCrawler:
-    def __init__(self, base_url_ch, base_url_en, user_agent_list,start_page, end_page, filename, max_depth):
+    def __init__(self, base_url_ch, base_url_en, user_agent_list, filename, max_depth):
         self.base_url_en = base_url_en
         self.base_url_ch = base_url_ch 
-        self.start_page = start_page
-        self.end_page = end_page
         self.filename = filename
         self.max_depth = max_depth
         self.visited = set()
@@ -80,27 +78,40 @@ class WebCrawler:
             return ""
     
     def crawl(self):
-        q = Queue()
-        q.put((self.base_url_en, self.max_depth))
-        base_url = self.base_url_en
-        while not q.empty():
-            url, depth = q.get()
-            if url not in self.visited and depth < self.max_depth:
-                self.visited.add(url)
-                print(f'Crawling: {url} at depth {depth}')
-                html = self.get_html(url)
-                soup = BeautifulSoup(html, 'lxml')
-                for link in soup.find_all('a', href=re.compile(rf'^{base_url}')):
-                    href = link.get('href')
-                    if href and href.startswith('http'):
-                        q.put((href, depth + 1))
-
-                self.save_data(html)
-
+        for url in self.base_url_en:
+            base_url=url
+            q=Queue()
+            q.put((base_url, 0))
+            self.visited.clear()
+            while not q.empty():
+                url, depth = q.get()
+                print('Crawling:', url)
+                if url not in self.visited and depth < self.max_depth and len(self.visited) < 1:
+                    self.visited.add(url)
+                    print(f'Crawling: {url} at depth {depth}')
+                    html = self.get_html(url)
+                    text=self.extract_data(html)
+                    with open('output.txt', 'a', encoding='utf-8') as f:
+                        f.write(text)
+                    soup = BeautifulSoup(html, 'lxml')
+                    for link in soup.find_all('a', href=re.compile(rf'^{base_url}')):
+                        href = link['href']
+                        if href not in self.visited :
+                            q.put((href, depth+1))
+                            print(f'Found link: {href}')
+                
+    
+    
+    def extract_data(self, html):
+        soup = BeautifulSoup(html, 'lxml')
+        return soup.get_text() 
+    
+    
     def save_data(self, data):
         with open(self.filename, 'a', encoding='utf-8') as f:
             f.write(data + '\n')
 
 
 if __name__ == "__main__":
-    
+    Crawler = WebCrawler(base_url_ch, base_url_en, user_agent_list, 'output.txt', 5)
+    Crawler.crawl()
