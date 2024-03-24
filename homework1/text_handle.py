@@ -1,8 +1,10 @@
 import jieba
 import re
 import nltk
+
 nltk.download('punkt')
 from nltk.tokenize import word_tokenize
+
 
 def clean_text(text):
     text = re.sub(r'[^\w\s]', '', text)  # 删除所有标点符号
@@ -14,8 +16,9 @@ def clean_text(text):
 
 
 def save_text(text, filename):
-    with open(filename,'w',encoding='utf-8') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
+
 
 def tokenize(text, language='english'):
     if language == 'english':
@@ -24,6 +27,7 @@ def tokenize(text, language='english'):
         return list(jieba.cut(text))
     else:
         raise ValueError('Unsupported language: ' + language)
+
 
 if __name__ == "__main__":
     with open('output.txt', 'r', encoding='utf-8') as f:

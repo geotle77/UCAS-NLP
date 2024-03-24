@@ -5,6 +5,7 @@ import os
 import random
 import time
 from queue import Queue
+from datetime import datetime, timedelta
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
@@ -49,7 +50,7 @@ user_agent_list = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"   
 ]
 
-base_url_en=["https://www.bbc.com","https://www.cnn.com","https://www.foxnews.com","https://www.nytimes.com","https://www.theguardian.com/international"]
+base_url_en=["https://www.chinadaily.com.cn/","http://en.people.cn/"]
 base_url_ch=["http://www.xinhuanet.com","http://www.chinanews.com","http://www.chinadaily.com.cn","http://www.globaltimes.cn","http://www.ecns.cn"]
 
 class WebCrawler:
@@ -76,37 +77,37 @@ class WebCrawler:
         except Exception as e:
             print(e)
             return ""
-    
+
     def crawl(self):
-        for url in self.base_url_en:
-            base_url=url
-            q=Queue()
-            q.put((base_url, 0))
-            self.visited.clear()
-            while not q.empty():
-                url, depth = q.get()
-                print('Crawling:', url)
-                if url not in self.visited and depth < self.max_depth and len(self.visited) < 1:
-                    self.visited.add(url)
-                    print(f'Crawling: {url} at depth {depth}')
-                    html = self.get_html(url)
-                    text=self.extract_data(html)
-                    with open('output.txt', 'a', encoding='utf-8') as f:
-                        f.write(text)
-                    soup = BeautifulSoup(html, 'lxml')
-                    for link in soup.find_all('a', href=re.compile(rf'^{base_url}')):
-                        href = link['href']
-                        if href not in self.visited :
-                            q.put((href, depth+1))
-                            print(f'Found link: {href}')
-                
-    
-    
+        # start_date = "202301/01"
+        # end_date = datetime.now().strftime("%Y%m/%d")
+        base_url = self.base_url_en[0]
+        q = Queue()
+        self.visited.clear()
+        q.put((base_url, 0))
+        while not q.empty():
+            url, depth = q.get()
+            print('Crawling:', url)
+            if url not in self.visited and depth < self.max_depth and len(self.visited) < 500:
+                self.visited.add(url)
+                print(f'Crawling: {url} at depth {depth}')
+                html = self.get_html(url)
+                text = self.extract_data(html)
+                with open('output.txt', 'a', encoding='utf-8') as f:
+                    f.write(text)
+                soup = BeautifulSoup(html, 'lxml')
+                links = [a['href'] for a in soup.find_all('a', href=True)]
+                if depth <= 5:
+                    for link in links:
+                        q.put((link, depth + 1))
+                        print('Adding:', link)
+                print('Visited:', len(self.visited))
+
     def extract_data(self, html):
         soup = BeautifulSoup(html, 'lxml')
-        return soup.get_text() 
-    
-    
+        text = soup.get_text()
+        return text
+
     def save_data(self, data):
         with open(self.filename, 'a', encoding='utf-8') as f:
             f.write(data + '\n')
