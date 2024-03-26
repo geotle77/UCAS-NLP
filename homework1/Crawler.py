@@ -53,66 +53,56 @@ user_agent_list = [
 base_url_en=["https://www.chinadaily.com.cn/","http://en.people.cn/"]
 base_url_ch=["http://www.xinhuanet.com","http://www.chinanews.com","http://www.chinadaily.com.cn","http://www.globaltimes.cn","http://www.ecns.cn"]
 
-class WebCrawler:
-    def __init__(self, base_url_ch, base_url_en, user_agent_list, filename, max_depth):
-        self.base_url_en = base_url_en
-        self.base_url_ch = base_url_ch 
-        self.filename = filename
-        self.max_depth = max_depth
-        self.visited = set()
-        self.user_agent_list = user_agent_list
-
-    def get_headers(self):
-        headers = {}
-        headers['User-Agent'] = random.choice(self.user_agent_list)
-        return headers
-    
-    def get_html(self, url):
-        try:
-            headers = self.get_headers()
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            response.encoding = response.apparent_encoding
-            return response.text
-        except Exception as e:
-            print(e)
-            return ""
-
-    def crawl(self):
-        # start_date = "202301/01"
-        # end_date = datetime.now().strftime("%Y%m/%d")
-        base_url = self.base_url_en[0]
-        q = Queue()
-        self.visited.clear()
-        q.put((base_url, 0))
-        while not q.empty():
-            url, depth = q.get()
-            print('Crawling:', url)
-            if url not in self.visited and depth < self.max_depth and len(self.visited) < 500:
-                self.visited.add(url)
-                print(f'Crawling: {url} at depth {depth}')
-                html = self.get_html(url)
-                text = self.extract_data(html)
-                with open('output.txt', 'a', encoding='utf-8') as f:
-                    f.write(text)
-                soup = BeautifulSoup(html, 'lxml')
-                links = [a['href'] for a in soup.find_all('a', href=True)]
-                if depth <= 5:
-                    for link in links:
-                        q.put((link, depth + 1))
-                        print('Adding:', link)
-                print('Visited:', len(self.visited))
-
-    def extract_data(self, html):
-        soup = BeautifulSoup(html, 'lxml')
-        text = soup.get_text()
-        return text
-
-    def save_data(self, data):
-        with open(self.filename, 'a', encoding='utf-8') as f:
-            f.write(data + '\n')
+def get_html(url):
+    try:
+        headers['User-Agent'] = random.choice(user_agent_list)
+        r = requests.get(url, headers=headers, timeout=30)
+        r.raise_for_status()
+        r.encoding = r.apparent_encoding
+        return r.text
+    except Exception as e:
+        print(e)
+        return ""
 
 
-if __name__ == "__main__":
-    Crawler = WebCrawler(base_url_ch, base_url_en, user_agent_list, 'output.txt', 5)
-    Crawler.crawl()
+def crawler_ch():
+    delta = timedelta(days=1)
+    start_date = datetime.today().date() - delta
+    end_date = datetime(2021, 1, 1).date()
+    parse_day = start_date
+    timeline = (start_date - end_date).days
+    base_url = 'http://paper.people.com.cn/rmrb/html/'
+    while timeline >= 0:
+        url = base_url + parse_day.isoformat()[:-3] + "/" + parse_day.isoformat()[8:10] + "/nbs.D110000renmrb_01.htm"
+        html = get_html(url)
+        print(f"crawling {url}")
+        soup = BeautifulSoup(html, 'html.parser')
+        next_pages = [a['href'] for a in soup.select("div.swiper-container div.swiper-slide a")]
+        page_links = base_url + parse_day.isoformat()[:-3] + "/" + parse_day.isoformat()[8:10] + "/"
+
+        for next_page in next_pages:
+            page_link = page_links + next_page
+            html = get_html(page_link)
+            soup = BeautifulSoup(html, 'html.parser')
+            next_passages = [a['href'] for a in soup.select("ul.news-list li a")]
+
+            for next_passage in next_passages:
+                next_passage_url = page_links + next_passage
+                html = get_html(next_passage_url)
+                soup = BeautifulSoup(html, 'html.parser')
+
+                for article in soup.select('div.article'):
+                    title = article.select_one('h1').get_text(strip=True)
+                    author = article.select_one('p.sec').get_text(strip=True)
+                    contents = [p.get_text(strip=True) for p in article.select('div#ozoom p')]
+                    print(f"saving {title}")
+                    with open('chinese.txt', 'a', encoding='utf-8') as f:
+                        f.write(title + '\n' + author + '\n' + '\n'.join(contents) + '\n\n')
+
+        parse_day -= delta
+        timeline -= 1
+        print(f"the rest of the days: {timeline}")
+
+
+if __name__ == '__main__':
+    crawler_ch()
