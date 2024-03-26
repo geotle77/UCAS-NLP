@@ -6,3 +6,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+<<<<<<< HEAD
+=======
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions
+>>>>>>> 42b7c91192b94d4a198d6ae187fd07c18ea20eeb
