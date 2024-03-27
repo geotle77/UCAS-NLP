@@ -17,4 +17,17 @@
 ## 中文熵值计算
 我选择爬取的网站说人民日报网，该网站的网址比较规则，很容易从中爬取每日的报道内容，其中记录了2020.1.1-至今的所有新闻，通过爬取这一部分的内容就可以采集到大量的文本。
 
-首先对网址的处理
+首先对网址的处理,人民日报网每日的报道规则性较强，都是不同的日期加上相同后缀，所以只需要不断生成这样的网址就可以爬取每日的新闻。
+
+总的来说，分为以下几步：
+- 将其中涉及日期的部分更改为要爬取的日期。
+```Python
+url = base_url + parse_day.isoformat()[:-3] + "/" + parse_day.isoformat()[8:10] + "/nbs.D110000renmrb_01.htm"
+```
+2.由于每天的日报会分成不同的模块，因此需要对每个模块的url发出http请求
+
+       yield scrapy.Request(page_links+"nbs.D110000renmrb_01.htm",callback=self.parse)
+3.每个模块中又会有不同种类的文章，因此需要对每个文章的url发出http请求
+
+       yield scrapy.Request(next_passage,callback=self.parsefinal)
+4.得到了请求的response之后，可以对html进行解析，使用css选择器，最后就可以得到想要的数据

@@ -31,5 +31,5 @@ def text_handle(filename,outputname,language):
 
 
 if __name__ == "__main__":
-    text_handle('./homework1/chinese.txt', './homework1/chinese_output.txt', 'chinese')
-    text_handle('./homework1/english.txt', './homework1/english_output.txt', 'english')
+    text_handle('./homework1/chinese.txt', './homework1/output/chinese_output.txt', 'chinese')
+    text_handle('./homework1/english.txt', './homework1/output/english_output.txt', 'english')
