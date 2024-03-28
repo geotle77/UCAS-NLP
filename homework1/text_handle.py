@@ -1,6 +1,4 @@
-import jieba
 import re
-import nltk
 
 def clean_text(text):
     text = re.sub(r'[^\w\s]', '', text)  # 删除所有标点符号
@@ -31,5 +29,5 @@ def text_handle(filename,outputname,language):
 
 
 if __name__ == "__main__":
-    text_handle('./homework1/chinese.txt', './homework1/output/chinese_output.txt', 'chinese')
-    text_handle('./homework1/english.txt', './homework1/output/english_output.txt', 'english')
+    text_handle('./chinese.txt', './output/chinese_output.txt', 'chinese')
+    text_handle('./english.txt', './output/english_output.txt', 'english')

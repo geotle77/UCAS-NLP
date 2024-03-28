@@ -47,7 +47,7 @@ def crawler_ch():
         html = get_html(url)
         print(f"crawling {url}")
         soup = BeautifulSoup(html, 'html.parser')
-        next_pages = [a['href'] for a in soup.select("div.swiper-container div.swiper-slide a")]
+        next_pages = [a['href'] for a in soup.select("div.swiper-container div.swiper-slide  a")]
         page_links = base_url + parse_day.isoformat()[:-3] + "/" + parse_day.isoformat()[8:10] + "/"
 
         for next_page in next_pages:
@@ -74,45 +74,25 @@ def crawler_ch():
         print(f"the rest of the days: {timeline}")
 
 def crawler_en():
-    base_url_en = "https://www.chinadaily.com.cn"
-    titles = ['china','world','business','lifestyle','sports','opinion','culture','regional','travel']
-    html = get_html(base_url_en)
-    soup = BeautifulSoup(html, 'html.parser')
-    q = Queue()
-    q.put(base_url_en)
-    pattern = r'^https://www\.chinadaily\.com\.cn/a/\d{6}/\d{2}/WS.+\.html$'
-    for title in titles:
-        q.put(base_url_en + '/' + title)
-    while not q.empty():    
-        url = q.get()
+    base_url_en = "https://www.chinadaily.com.cn/china/59b8d010a3108c54ed7dfc23/"
+    start_page = 1
+    page_num = start_page
+    end_page = 4508
+    url = base_url_en + f"page_{page_num}.html"
+    while page_num < end_page:
         html = get_html(url)
+        print(f"parse the index {page_num}")
         soup = BeautifulSoup(html, 'html.parser')
-        links =  []
-
-        for link in soup.find_all('a'):
-            href = link.get('href')
-            print(href)
-            if href:
-                if href.startswith('//'):
-                    href = 'https:' + href
-                if re.match(pattern, href):
-                    links.append(href)
-                
+        links = soup.select('div.main_art div.lft_art.lf span.tw3_01_2_p a')
         for link in links:
-            print(f"crawling {link}")
-            html = get_html(link)
-            soup = BeautifulSoup(html, 'html.parser')
-            text = ""
-            for div in soup.find_all('div',id = 'Content'):
-                if div:
-                    text += div.get_text()
-            with open('./homework1/english.txt', 'a', encoding='utf-8') as f:
-                f.write(text)
+            print (link['href'])
+        
+    
 
 def crawler_en_xinhua():
     base_url = "https://english.news.cn"
     total_size = 0
-    max_size = 1024 * 1024 * 20
+    max_size = 1024 * 1024 * 100
     q = Queue()
     q.put((base_url, 0))
     pattern = r'^https://english\.news\.cn/\d{8}/.+c\.html$'
@@ -161,5 +141,5 @@ def save_text(text, filename):
 
 if __name__ == '__main__':
     # crawler_ch()
-    # crawler_en()
-    crawler_en_xinhua()
+    crawler_en()
+    # crawler_en_xinhua()

@@ -60,6 +60,6 @@ def draw_entropy_curve(sizes_and_entropies):
 
 if __name__ == "__main__":
     
-    draw_entropy_curve(calculate_entropy_of_file('./homework1/output/chinese_output.txt'))
+    draw_entropy_curve(calculate_entropy_of_file('./output/chinese_output.txt'))
 
-    draw_entropy_curve(calculate_entropy_of_file('./homework1/output/english_output.txt'))
+    draw_entropy_curve(calculate_entropy_of_file('./output/english_output.txt'))
