@@ -73,22 +73,87 @@ def crawler_ch():
         timeline -= 1
         print(f"the rest of the days: {timeline}")
 
-def crawler_en():
+def extract_chinadaily(link):
+    Base_url = "https:"
+    url = Base_url + link
+    soup = BeautifulSoup(get_html(url), 'html.parser')
+    content_divs  = soup.select('div.picshow div#Content p') 
+    page_text = ""
+    for div in content_divs:
+        page_text += div.get_text()
+    next_page = soup.select_one('div#currpage a.pagestyle')
+    if next_page and 'Next' in next_page.text:
+        next_url = next_page['href']
+        # If the URL is relative, you might need to add the base URL
+        page_text += extract_chinadaily(next_url)
+    return page_text
+
+
+def crawler_chinadaily():
     base_url_en = "https://www.chinadaily.com.cn/china/59b8d010a3108c54ed7dfc23/"
     start_page = 1
     page_num = start_page
     end_page = 4508
-    url = base_url_en + f"page_{page_num}.html"
     while page_num < end_page:
+        url = base_url_en + f"page_{page_num}.html"
         html = get_html(url)
         print(f"parse the index {page_num}")
         soup = BeautifulSoup(html, 'html.parser')
         links = soup.select('div.main_art div.lft_art.lf span.tw3_01_2_p a')
         for link in links:
-            print (link['href'])
-        
-    
+            link_url = link['href']
+            print(f"crawling {link_url}")
+            content = extract_chinadaily(link_url)
+            save_text(content, 'english.txt')
+        page_num += 1
+            
+def extract_novel(link):
+    html = get_html(link)
+    soup = BeautifulSoup(html, 'html.parser')
+    name = soup.select_one('div#content div.vgvgd').get_text()
+    content = ""
+    Chpter_links = soup.select('div#content ol.clearfix li a')
+    base_url = link+'/'
+    chapter_num = 1
+    for link in Chpter_links:
+        chapter_url = base_url + link['href']
+        chapter_html = get_html(chapter_url)
+        chapter_soup = BeautifulSoup(chapter_html, 'html.parser')
+        chapter_content = chapter_soup.select_one('div.text').get_text()
+        print(f"have processed chapter {chapter_num}")
+        chapter_num += 1
+        content += chapter_content
+    return content,name
 
+def crawler_novel():
+    novel_url = "https://novel.tingroom.com/count.php"
+    start_page = 1
+    end_page = 536
+    articles = []
+    page = start_page
+    while page <= end_page:
+        url = novel_url + f"?page={page}"
+        html = get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
+        novel_divs = soup.select('div.all001xp1 div.list')
+        links = []
+        for div in novel_divs:
+            name = div.select_one('div.text h6.yuyu a').get_text()
+            link = div.select_one('div.text h6.yuyu a')['href']
+            if name not in articles:
+                links.append(link)
+                articles.append(name)
+        base_url = "https://novel.tingroom.com"
+        for link in links:
+            url = base_url + link
+            print(f"crawling {url}")
+            content,name = extract_novel(url)
+            print(f"saving {name}")
+            save_text(content, 'english.txt')
+        page += 1
+    print(f"total {len(articles)} articles")
+        
+        
 def crawler_en_xinhua():
     base_url = "https://english.news.cn"
     total_size = 0
@@ -97,11 +162,11 @@ def crawler_en_xinhua():
     q.put((base_url, 0))
     pattern = r'^https://english\.news\.cn/\d{8}/.+c\.html$'
     pattern_prefix = r'^https://english\.news\.cn/.+'
+    visited = set()
     while not q.empty():
         url, depth = q.get()
         html = get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
-        pre_url = None
         for link in soup.find_all('a'):
             href = link.get('href')
             if href and depth < 5:
@@ -110,10 +175,10 @@ def crawler_en_xinhua():
                 elif href.startswith('#'):
                     continue
                 if re.match(pattern, href):
-                    if href == pre_url:
+                    if href in visited:
                         continue
-                    pre_url = href
                     content = extract_xinhua(href)
+                    visited.add(href)
                     total_size += sys.getsizeof(content)
                     save_text(content, 'english.txt')
                     if total_size > max_size:
@@ -122,7 +187,6 @@ def crawler_en_xinhua():
                 elif re.match(pattern_prefix, href):
                     q.put((href, depth + 1))
                 
-
 def extract_xinhua(link):
     print(f"crawling {link}")
     html = get_html(link)
@@ -134,12 +198,13 @@ def extract_xinhua(link):
     return text
 
 def save_text(text, filename):
-    with open(filename, 'a', encoding='utf-8') as f:
+    with open('./homework1/output/'+filename, 'a', encoding='utf-8') as f:
         f.write(text)
 
 
 
 if __name__ == '__main__':
     # crawler_ch()
-    crawler_en()
+    # crawler_chinadaily()
     # crawler_en_xinhua()
+    crawler_novel()

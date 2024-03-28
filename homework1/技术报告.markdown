@@ -53,8 +53,27 @@ page_links = base_url + parse_day.isoformat()[:-3] + "/" + parse_day.isoformat()
                     with open('chinese.txt', 'a', encoding='utf-8') as f:
                         f.write(title + '\n' + author + '\n' + '\n'.join(contents) + '\n\n')
 ```
-### 具体细节实现
-#### 爬虫伪装
+
+## 英文网页爬取
+英文文本相比中文文本信息量更小，同样的大小下，英文文本的信息量差不多为中文的1/3，所以需要采集更大数据量的文本内容。
+
+我共选择了三个爬取策略，分别是
+- [中国日报网](https://www.chinadaily.com.cn/china/59b8d010a3108c54ed7dfc23/)
+  
+  该网页包含了12年至今所有的报道，共近9000篇报道，只需要不断所引出每篇报道的链接，并爬取其中的内容即可。
+
+- [新华网](https://english.news.cn/)
+   
+   该网页是新华网英文版，因为没有报道索引页，所以我采取最简单递归索引的策略，找到符合**pattern**格式的网页，并爬取其中的内容即可。因为可能会有重复的链接，所以使用**visited**来保存已爬取过的内容。
+
+- [英文小说网](https://novel.tingroom.com/count.php)
+
+    该网页记录了5356篇英文小说及其内容，其中也包括中文对照部分，因此也可以用来补充中文语料。
+
+分别调用不同的爬虫处理程序，爬到足量的英文数据。
+
+## 具体细节实现
+### 爬虫伪装
 长时间爬取同一网站，容易被反爬虫程序阻挡，造成断连，因此需要进行伪装，即每次采用不同的headers来获取服务器响应。
 ```Python
 
@@ -82,12 +101,57 @@ def get_html(url):
         print(e)
         return ""
 ```
-#### 文本量控制
-可以通过设置以下代码来实现文本量的采集，爬完全部日期的内容大概会获得约300M的文本量数据。
+### 文本量控制
+- 人民日报网：
+
+    可以通过设置以下代码来实现文本量的采集，爬完全部日期的内容大概会获得约300M的文本量数据。
 ```Python
 start_date = datetime.today().date() - delta
 end_date = datetime(2021, 1, 1).date()
 ```
+- 新华网：
+  
+  通过控制文本量大小和递归深度来控制最终终止条件
+```Python
+max_size = 1024 * 1024 * 100
+```
 
-## 英文网页爬取
-英文文本相比中文文本信息量更小，同样的大小下，英文文本的信息量差不多为中文的1/3，所以需要采集更大数据量的文本内容。
+- 中国日报网：
+
+    通过控制索引页的数量来控制爬取内容的数量
+```Python
+    start_page = 1
+    page_num = start_page
+    end_page = 4508
+  ```
+
+- 英文小说网：
+    
+    和中国日报网的控制方法一致
+
+
+
+## 文本清洗
+ 文本清洗的过程非常简单，只需要单独提取出中英文字符对应的编码即可
+- 中文使用```[^\u4e00-\u9fa5]```来匹配，英文使用```[^a-zA-Z]```来匹配
+  
+```Python
+if language == 'chinese':
+        text = re.sub(r'[^\u4e00-\u9fa5]', '', text)
+        return text
+    elif language == 'english':
+        text = re.sub(r'[^a-zA-Z]', '', text)
+        return text
+```
+- 清除标点符号和多余的空白
+```Python
+def clean_text(text):
+    text = re.sub(r'[^\w\s]', '', text)  # 删除所有标点符号
+    text = re.sub(r'\d+', '', text)  # 删除所有数字
+    text = re.sub(r'\s+', ' ', text)  # 替换多余的空格
+    text = re.sub(r'\n+', '\n', text)  # 替换多余的换行符
+    text = text.lower()  # 转换为小写
+    return text.strip()  # 删除首尾的空格和换行符
+```
+
+## 熵值计算
