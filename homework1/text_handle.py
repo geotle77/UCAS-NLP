@@ -17,7 +17,14 @@ def filter(text, language):
         text = re.sub(r'[^a-zA-Z]', '', text)
         return text
     
-
+def text_merge(file1, file2, outputname):
+    with open(file1, 'r', encoding='utf-8') as f:
+        text1 = f.read()
+    with open(file2, 'r', encoding='utf-8') as f:
+        text2 = f.read()
+    text = text1 + text2
+    with open(outputname, 'w', encoding='utf-8') as f:
+        f.write(text)
 
 def text_handle(filename,outputname,language):
     with open(filename, 'r', encoding='utf-8') as f:
@@ -28,6 +35,9 @@ def text_handle(filename,outputname,language):
         f.write(text)
 
 
+
+
 if __name__ == "__main__":
-    text_handle('./chinese.txt', './output/chinese_output.txt', 'chinese')
-    text_handle('./english.txt', './output/english_output.txt', 'english')
+    # text_handle('./chinese.txt', './output/chinese_output.txt', 'chinese')
+    # text_handle('./output/english.txt', './output/english_output.txt', 'english')
+    text_merge('./output/chinese_output.txt', './output/append_chinese_output.txt', './output/merged_chinese_output.txt')

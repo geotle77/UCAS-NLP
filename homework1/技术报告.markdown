@@ -153,5 +153,40 @@ def clean_text(text):
     text = text.lower()  # 转换为小写
     return text.strip()  # 删除首尾的空格和换行符
 ```
+清洗后得到英文文本和中文文本，我未完全爬取完全部数据，所以中文文本共取得80MB，英文文本取得55MB，我以每次添加2MB求得熵值，并最后绘制柱形图。
 
 ## 熵值计算
+
+熵值的计算很简单，只需要调用Count类，然后执行以下代码操作：
+```Python
+def calculate_entropy(text):
+    # Count the frequency of each character
+    char_counts = Counter(text)
+    # Calculate the frequency of each character
+    char_frequencies = {char: count / len(text) for char, count in char_counts.items()}
+    # Calculate the entropy of each character and sum them up
+    entropy = sum(-p * math.log2(p) for p in char_frequencies.values())
+    return entropy
+```
+注意到以上熵值计算中，我取对数的底为2而非自然对数e，计算得到的结果如下图所示：
+
+### 中文：
+熵值变化图如下：
+
+![example2](./pics/chiniese_entropy.png)
+
+字符统计结果如下：
+
+![example3](./pics/chinese_count.png)
+
+### 英文
+
+熵值变化图如下：
+
+![example4](./pics/english_entropy.png)
+
+字符统计结果如下：
+
+![example3](./pics/english_count.png)
+
+可以看到，中英文语料库的频次数据很符合经验与直觉，所得数据结论符合预期，计算得到的中英文熵与 PPT 结论相比差别很小，说明结果具备一定的代表性。

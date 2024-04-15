@@ -1,7 +1,8 @@
 import math
 from collections import Counter
 import os
-
+import matplotlib.pyplot as plt
+import matplotlib
 chunk_size = 2*1024*1024
 
 # Define a function to calculate the entropy of a given text
@@ -11,7 +12,7 @@ def calculate_entropy(text):
     # Calculate the frequency of each character
     char_frequencies = {char: count / len(text) for char, count in char_counts.items()}
     # Calculate the entropy of each character and sum them up
-    entropy = sum(-p * math.log(p) for p in char_frequencies.values())
+    entropy = sum(-p * math.log2(p) for p in char_frequencies.values())
     return entropy
 
 def read_file_in_chunks(file_path, chunk_size):
@@ -21,6 +22,15 @@ def read_file_in_chunks(file_path, chunk_size):
             if not data:
                 break
             yield data
+
+def count_chars_in_file(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        text = file.read()
+    char_counts = Counter(text)
+    total_chars = sum(char_counts.values())
+    total_chars = sum(char_counts.values())
+    top10_chars = char_counts.most_common(10)
+    return total_chars, top10_chars
 
 
 def calculate_entropy_of_file(filename):
@@ -49,7 +59,6 @@ def calculate_entropy_of_file(filename):
 
 
 def draw_entropy_curve(sizes_and_entropies):
-    import matplotlib.pyplot as plt
     sizes, entropies = zip(*sizes_and_entropies)
     plt.plot(sizes, entropies)
     plt.xlabel('Size')
@@ -57,9 +66,29 @@ def draw_entropy_curve(sizes_and_entropies):
     plt.title('Entropy Curve')
     plt.show()
 
+def draw_char_counts(total_chars, top10_chars):
+    labels, counts = zip(*top10_chars)
+    matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+    matplotlib.rcParams['axes.unicode_minus'] = False
+    plt.bar(labels, counts)
+    plt.xlabel('Character')
+    plt.ylabel('Count')
+    plt.title(f'Top 10 Characters (Total: {total_chars})')
+    plt.show()
+
 
 if __name__ == "__main__":
     
-    draw_entropy_curve(calculate_entropy_of_file('./output/chinese_output.txt'))
+    chinese_entropy = calculate_entropy_of_file('./output/chinese_output.txt')
+    
+    english_entropy = calculate_entropy_of_file('./output/english_output.txt')
 
-    draw_entropy_curve(calculate_entropy_of_file('./output/english_output.txt'))
+    chinese_info = count_chars_in_file('./output/chinese_output.txt')
+    english_info = count_chars_in_file('./output/english_output.txt')
+    
+    
+    draw_entropy_curve(chinese_entropy)
+    draw_entropy_curve(english_entropy)
+    
+    draw_char_counts(*chinese_info)
+    draw_char_counts(*english_info)

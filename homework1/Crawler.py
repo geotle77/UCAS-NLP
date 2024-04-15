@@ -127,7 +127,7 @@ def extract_novel(link):
 
 def crawler_novel():
     novel_url = "https://novel.tingroom.com/count.php"
-    start_page = 1
+    start_page = 500
     end_page = 536
     articles = []
     page = start_page
@@ -148,10 +148,11 @@ def crawler_novel():
             url = base_url + link
             print(f"crawling {url}")
             content,name = extract_novel(url)
+            name = name.replace('\xa0', ' ')
             print(f"saving {name}")
             save_text(content, 'english.txt')
         page += 1
-    print(f"total {len(articles)} articles")
+        print(f"have processed {page} pages")
         
         
 def crawler_en_xinhua():
@@ -198,13 +199,14 @@ def extract_xinhua(link):
     return text
 
 def save_text(text, filename):
-    with open('./homework1/output/'+filename, 'a', encoding='utf-8') as f:
+    text = text.replace('\xa0', ' ')
+    with open('./output/'+filename, 'a', encoding='utf-8') as f:
         f.write(text)
 
 
 
 if __name__ == '__main__':
-    # crawler_ch()
-    # crawler_chinadaily()
-    # crawler_en_xinhua()
+    crawler_ch()
+    crawler_chinadaily()
+    crawler_en_xinhua()
     crawler_novel()
