@@ -8,10 +8,11 @@ class TextLoader:
     def __init__(self, file) :
         self.file = file
 
-    def generate(self,encoding, vocab_size, n, ratio,batch_size=512,type="n_gram" ):
+    def generate(self, encoding, vocab_size, n, ratio,batch_size=512,type="n_gram" ):
         
         with open(self.file, 'r', encoding=encoding) as f:
            words = f.read().split()
+        with open(self.file, 'r', encoding=encoding) as f:
            lines = f.readlines()
             
         word_count = Counter(words)
@@ -25,15 +26,23 @@ class TextLoader:
         
         self.top_words = {word: i+1 for i, (word, _) in enumerate(word_count.most_common(vocab_size - 1))}
 
-        if type=="n_gram":
+        if type=="nn":
             # n-gram
             for line in lines:
                 words = line.split()
                 if len(words) >= n:
                     for i in range(len(words)-n+1):
                         x.append([self.top_words.get(word, 0) for word in words[i:i+n-1]])
-                        y.append(self.top_words.get(words[i+n-1], 0))
+                        y.append([self.top_words.get(word, 0) for word in words[i+1:i+n]])
         
+        if type=="n_gram":
+            # n-gram
+            for line in lines:
+                words = line.split()
+                if len(words) >= n:
+                        x.append([self.top_words.get(word, 0) for word in words[i:i+n-1]])
+                        y.append(self.top_words.get(words[i+n-1], 0))
+
         print("x shape:", np.array(x).shape)
         print("y shape:", np.array(y).shape)
         
@@ -49,6 +58,4 @@ class TextLoader:
         self.test_loader = test_loader
 
     def save(self, obj_file):
-        with open(obj_file, 'wb') as f:
-            str = pickle.dumps(self)
-            f.write(str)
+        torch.save(self, obj_file)

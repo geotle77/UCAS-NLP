@@ -4,12 +4,12 @@ import numpy as np
 
 class LSTM(nn.Module):
     def __init__(self, vocab_size, input_size, hidden_size, embedding_dim):
-        super(LSTM, self).__init__()
+        super().__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
         self.lstm = nn.LSTM(input_size, hidden_size,  batch_first=True)
         self.liner_relu = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size),
+            nn.Linear(hidden_size, embedding_dim),
             nn.ReLU()
         )   
     
@@ -28,9 +28,9 @@ class Trainer():
         self.device = device
         self.model = model.to(device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate) if optimizer is None else optimizer
-        self.loss_fn = nn.CrossEntropyLoss()
+        self.loss_fn = nn.CrossEntropyLoss() if loss_fn is None else loss_fn
 
-    def train(self, data_loader, epochs=10):
+    def train(self, data_loader):
         size = len(data_loader.dataset)
         model = self.model
         loss_fn = self.loss_fn
