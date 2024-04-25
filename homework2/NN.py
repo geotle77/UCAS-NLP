@@ -21,7 +21,46 @@ class LSTM(nn.Module):
         x = torch.matmul(x, self.embedding.weight.T)
         return x
 
+class FNN(nn.Module):
+    def __init__(self, vocab_size, input_size, embedding_dim, hidden_size):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, embedding_dim),
+            nn.ReLU()
+        )
+        
+    def forward(self, x):
+        x = self.embedding(x)
+        x = self.norm(x)
+        x = self.flatten(x)
+        x = self.linear_relu_stack(x)
+        x = torch.matmul(x, self.embedding.weight.T)
+        return x
+    
 
+class RNN(nn.Module):
+    def __init__(self, vocab_size, input_size, embedding_dim, hidden_size):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
+        self.rnn = nn.RNN(input_size, hidden_size, batch_first=True)
+        self.linear_relu = nn.Sequential(
+            nn.Linear(hidden_size, embedding_dim),
+            nn.ReLU()
+        )
+        
+    def forward(self, x):
+        x = self.embedding(x)
+        x = self.norm(x)
+        x, _ = self.rnn(x)
+        x = self.linear_relu(x)
+        x = torch.matmul(x, self.embedding.weight.T)
+        return x
 
 class Trainer():
     def __init__(self, model, learning_rate=0.001,device='cpu',optimizer=None,loss_fn=None):

@@ -40,8 +40,9 @@ class TextLoader:
             for line in lines:
                 words = line.split()
                 if len(words) >= n:
-                        x.append([self.top_words.get(word, 0) for word in words[i:i+n-1]])
-                        y.append(self.top_words.get(words[i+n-1], 0))
+                        for i in range(len(words)-n+1):
+                            x.append([self.top_words.get(word, 0) for word in words[i:i+n-1]])
+                            y.append(self.top_words.get(words[i+n-1], 0))
 
         print("x shape:", np.array(x).shape)
         print("y shape:", np.array(y).shape)

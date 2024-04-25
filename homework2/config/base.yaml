@@ -1,0 +1,28 @@
+train:
+  epochs: 60
+  batch_size: 512 
+  lr: 1.0e-3
+
+lstm:
+  vocab_size : 1024
+  embedding_dim : 16
+  n : 9
+  input_size : 16
+  hidden_size : 64
+  dataset : "nn"
+
+rnn:
+  vocab_size : 1024
+  embedding_dim : 16
+  n : 9
+  input_size : 16
+  hidden_size : 64
+  dataset : "nn"
+
+fnn:
+  vocab_size : 1024
+  embedding_dim : 16
+  n : 9
+  input_size : 128
+  hidden_size : 64
+  dataset : "n-gram"
