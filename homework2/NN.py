@@ -22,7 +22,7 @@ class LSTM(nn.Module):
         return x
 
 class FNN(nn.Module):
-    def __init__(self, vocab_size, input_size, embedding_dim, hidden_size):
+    def __init__(self, vocab_size, input_size, hidden_size, embedding_dim):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
@@ -44,7 +44,7 @@ class FNN(nn.Module):
     
 
 class RNN(nn.Module):
-    def __init__(self, vocab_size, input_size, embedding_dim, hidden_size):
+    def __init__(self, vocab_size, input_size, hidden_size, embedding_dim):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.norm = nn.LayerNorm(embedding_dim, elementwise_affine=False)
@@ -104,7 +104,7 @@ class Trainer():
                 X, y = X.to(self.device), y.to(self.device)
                 pred = model(X)
                 test_loss += loss_fn(pred.reshape(-1,pred.shape[-1]), y.flatten()).item()
-                correct += (pred.argmax(2) == y).type(torch.float).sum().item()
+                correct += (pred.argmax(-1) == y).type(torch.float).sum().item()*pred.shape[0]/np.prod(pred.shape[:-1])
         test_loss /= num_batches
         correct /= size
         print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
