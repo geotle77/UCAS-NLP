@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import tqdm
 
 class LSTM(nn.Module):
     def __init__(self, vocab_size, input_size, hidden_size, embedding_dim):
@@ -75,19 +76,21 @@ class Trainer():
         loss_fn = self.loss_fn
         optimizer = self.optimizer
         model.train()
-        for batch, (X, y) in enumerate(data_loader):
-            X, y = X.to(self.device), y.to(self.device)
-            # Compute prediction error
-            pred = model(X)
-            # print(pred.shape, y.shape)
-            loss = loss_fn(pred.reshape(-1,pred.shape[-1]), y.flatten())
-            # Backpropagation
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            if (batch+1) % 100 == 0:
-                loss, current = loss.item(), (batch + 1) * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        with tqdm.tqdm(data_loader, unit='batch') as t:
+            for batch, (X, y) in enumerate(t):
+                X, y = X.to(self.device), y.to(self.device)
+                # Compute prediction error
+                pred = model(X)
+                # print(pred.shape, y.shape)
+                loss = loss_fn(pred.reshape(-1,pred.shape[-1]), y.flatten())
+                # Backpropagation
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                t.set_postfix(loss=loss.item())
+                if (batch+1) % 100 == 0:
+                    loss, current = loss.item(), (batch + 1) * len(X)
+                
     
     def test(self, data_loader):
         size = len(data_loader.dataset)
@@ -109,8 +112,3 @@ class Trainer():
         correct /= size
         print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
         return correct, test_loss
-
-        
-        
-
-

@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.utils.data as Data
 import numpy as np
 import random
-from collections import Counter
 import os
 import pickle
 import importlib
@@ -17,14 +16,14 @@ import evaluate
 
 
 # 创建解析器
-parser = argparse.ArgumentParser(description='the train of different model.')
+parser = argparse.ArgumentParser(description='the train settings of different model.')
 # 添加参数
-parser.add_argument('--model', type=str, default='RNN',
+parser.add_argument('--model', type=str, default='LSTM',
                     help='model type: LSTM,RNN,FNN.')
 parser.add_argument("--config", type=str, default="base.yaml")
 parser.add_argument('--device', default='cuda:0', help='Device for Attack')
-parser.add_argument('--is_train', type=bool, default=True)
-parser.add_argument('--is_eval', type=bool, default=False)
+parser.add_argument('--is_train', type=bool, default=False)
+parser.add_argument('--is_eval', type=bool, default=True)
 args = parser.parse_args()
 
 if args.device == 'cuda:0' and not torch.cuda.is_available():
@@ -107,10 +106,10 @@ if args.is_train:
 
 if args.is_eval:
     # load model
-    if not os.path.exists("checkpoint"):
-        os.mkdir("checkpoint")
+    if not os.path.exists("./homework2/checkpoint"):
+        os.mkdir("./homework2/checkpoint")
 
-    pth_list = os.listdir("checkpoint")
+    pth_list = os.listdir("./homework2/checkpoint")
     latest_pth = None
     cumulative_epoch = None
     for pth in pth_list:
@@ -126,14 +125,22 @@ if args.is_eval:
 
     if latest_pth is not None:
         print("load model from checkpoint/" + latest_pth)
-        model.load_state_dict(torch.load("checkpoint/" + latest_pth))
+        model.load_state_dict(torch.load("./homework2/checkpoint/" + latest_pth))
         model.eval()
     else :
         sys.exit("No trained model available in checkpoint, cannot proceed.")
     
     lookup_table = evaluate.get_lookup_table(trainer.model)
     print(lookup_table.shape)
-    word = random.choice(list(dataset.top_words.keys()))
-    # word = "５/m"
-    print(word)
-    evaluate.top_10_similar(evaluate.get_lookup_table(trainer.model), dataset.top_words[word],dataset)
+
+    # words = random.sample(list(dataset.top_words.keys()), 20)
+    word = "５/m"
+    # with open("./homework2/Gen/"+args.model+"_predictions.txt", "a") as f:
+    #     for word in words:
+    #         # 对每个单词进行预测
+    #         result = evaluate.top_10_similar(evaluate.get_lookup_table(trainer.model), dataset.top_words[word],dataset)
+    #         # 将预测结果写入 txt 文件
+    #         f.write(f"Word: {word}\n")
+    #         f.write(result)
+    #         f.write("\n\n\n")
+    result = evaluate.top_10_similar(evaluate.get_lookup_table(trainer.model), dataset.top_words[word],dataset)
