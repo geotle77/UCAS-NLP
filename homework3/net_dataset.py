@@ -9,9 +9,10 @@ from transformers import AutoTokenizer
 from functools import partial
 from datasets import Dataset
 import unicodedata
+from torch.utils.data import BatchSampler, DataLoader
 
-data_path = "homework3/PKU_TXT/ChineseCorpus199801.txt"
-file_path = "homework3/data/"
+data_path = "./homework3/PKU_TXT/ChineseCorpus199801.txt"
+file_path = "./homework3/data/"
 # 定义一个函数来将词语转换为BMES格式
 def word2bmes(word):
     if len(word) == 1:
@@ -22,9 +23,12 @@ def word2bmes(word):
         return ['B'] + ['M'] * (len(word) - 2) + ['E']
 
 def replace_full_width_numbers(text):
-    normalized_text = unicodedata.normalize('NFKC', text)
-    return normalized_text
-
+    full_width_numbers = '０１２３４５６７８９'
+    half_width_numbers = '0123456789'
+    trans_table = str.maketrans(full_width_numbers, half_width_numbers)
+    return text.translate(trans_table)
+def split_numbers(text):
+    return re.sub(r'\d', lambda x: ' ' + x.group() + ' ', text)
 def load_data(file_path):
     dataset={}
     text = []
@@ -44,10 +48,10 @@ def load_data(file_path):
     dataset['labels'] = labels
 
     # 首先，将数据集划分为训练集和一个临时的测试集
-    train_text, temp_text, train_labels, temp_labels = train_test_split(dataset['text'], dataset['labels'], test_size=0.4, random_state=42)
+    train_text, temp_text, train_labels, temp_labels = train_test_split(dataset['text'], dataset['labels'], test_size=0.3, random_state=42)
 
     # 然后，将临时的测试集划分为验证集和测试集
-    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.5, random_state=42)
+    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.7, random_state=42)
 
     # 将训练集、验证集和测试集保存在一个字典中
     split_dataset = {
@@ -58,10 +62,13 @@ def load_data(file_path):
     return split_dataset
 
 def convert_examples_to_features(example,tokenlizer, label2id,  max_seq_len=512,is_infer=False):
-    text = list(example['text'].strip().split(" "))
-    tokens = tokenizer.tokenize(text[0])
-    print(tokens)
-    print(len(tokens))
+    text = example['text'].strip().split(" ")
+    text = [split_numbers(word) for word in text[0]]
+    
+    # tokens = tokenizer.tokenize(text)
+    # print(tokens)
+    # print(len(tokens))
+    
     encoded_inputs = tokenlizer(text,max_length = max_seq_len,is_split_into_words=True,return_length=True)
 
     if not is_infer:
@@ -69,6 +76,8 @@ def convert_examples_to_features(example,tokenlizer, label2id,  max_seq_len=512,
         encoded_inputs['labels'] = [label2id["O"]]+label+[label2id["O"]]
         assert (len(encoded_inputs['input_ids']) == len(encoded_inputs['labels']))
     return encoded_inputs
+
+
 
 if __name__ == "__main__":
     if os.path.exists(file_path+'nn_data.pkl'):
@@ -96,5 +105,14 @@ if __name__ == "__main__":
     train_dataset = dataset['train'].map(trans_fn, batched=False, remove_columns=columns)
     dev_dataset =dataset['dev'].map(trans_fn, batched=False, remove_columns=columns)
     test_dataset = dataset['test'].map(trans_fn, batched=False, remove_columns=columns)
+    
+    train_dataset.save_to_disk(file_path+'train_dataset')
+    dev_dataset.save_to_disk(file_path+'dev_dataset')
+    test_dataset.save_to_disk(file_path+'test_dataset')
+    
+
+    print("train_dataset:",len(train_dataset))
+    print("dev_dataset:",len(dev_dataset))
+    print("test_dataset:",len(test_dataset))
 
     
