@@ -2,9 +2,10 @@ from collections import Counter
 import numpy as np
 import os
 import torch
-from torchtext.data.utils import get_tokenizer
-from collections import Counter
-from torchtext.vocab import Vocab
+# from torchtext.data.utils import get_tokenizer
+# from collections import Counter
+# from torchtext.vocab import Vocab
+import re
 
 data_path = "homework3/PKU_TXT/ChineseCorpus199801.txt"
 file_path = "homework3/data/"
@@ -56,8 +57,7 @@ def generate_bmes_dataset(file_path, encoding):
     with open(file_path+'bmes_dataset.txt', 'w', encoding='utf-8') as f:
         for item in bmes_dataset:
             f.write(item + '\n')
-        
-
+            
 if __name__ == "__main__":
     if not os.path.exists(file_path+"word_count.txt"):
         generate_count(data_path, 'gbk')

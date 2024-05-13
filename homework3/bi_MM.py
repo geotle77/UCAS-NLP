@@ -46,6 +46,6 @@ if __name__ == "__main__":
         generate_count(data_path, 'gbk')
     word_dict = return_dict(file, 'gbk')
     bimm = BiMM(word_dict)
-    sentence = "北京大学生喝进口红酒"
+    sentence = "北京大学生爱喝进口红酒"
 
     print(bimm.bi_directional_max_matching(sentence))
