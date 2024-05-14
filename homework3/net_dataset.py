@@ -48,10 +48,10 @@ def load_data(file_path):
     dataset['labels'] = labels
 
     # 首先，将数据集划分为训练集和一个临时的测试集
-    train_text, temp_text, train_labels, temp_labels = train_test_split(dataset['text'], dataset['labels'], test_size=0.3, random_state=42)
+    train_text, temp_text, train_labels, temp_labels = train_test_split(dataset['text'], dataset['labels'], test_size=0.2, random_state=42)
 
     # 然后，将临时的测试集划分为验证集和测试集
-    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.7, random_state=42)
+    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.9, random_state=42)
 
     # 将训练集、验证集和测试集保存在一个字典中
     split_dataset = {
