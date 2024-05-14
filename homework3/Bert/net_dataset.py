@@ -27,8 +27,10 @@ def replace_full_width_numbers(text):
     half_width_numbers = '0123456789'
     trans_table = str.maketrans(full_width_numbers, half_width_numbers)
     return text.translate(trans_table)
+
 def split_numbers(text):
     return re.sub(r'\d', lambda x: ' ' + x.group() + ' ', text)
+
 def load_data(file_path):
     dataset={}
     text = []
@@ -36,8 +38,11 @@ def load_data(file_path):
     with open(file_path, 'r', encoding='gbk') as f:
         lines = [line for line in f.readlines() if line.strip()] # 去掉空行
     pattern = re.compile(r'\d{8}-\d{2}-\d{3}-\d{3}/\w')
+    special_format = re.compile(r'\[(.*?)\]nt')
     for line in lines:
         line = replace_full_width_numbers(line)  # 将全角数字替换为半角数字
+        if special_format.search(line):
+            line = special_format.sub(r'\1', line)
         result = pattern.sub('', line)
         words = result.strip().split()
         words = [re.sub(r'/\w*', '', word) for word in words]
@@ -51,7 +56,7 @@ def load_data(file_path):
     train_text, temp_text, train_labels, temp_labels = train_test_split(dataset['text'], dataset['labels'], test_size=0.2, random_state=42)
 
     # 然后，将临时的测试集划分为验证集和测试集
-    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.9, random_state=42)
+    val_text, test_text, val_labels, test_labels = train_test_split(temp_text, temp_labels, test_size=0.6, random_state=42)
 
     # 将训练集、验证集和测试集保存在一个字典中
     split_dataset = {

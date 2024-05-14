@@ -1,8 +1,32 @@
-from handle_train_data import return_dict, generate_count
+from collections import Counter
 import os
 
 data_path = "homework3/PKU_TXT/ChineseCorpus199801.txt"
-file = "homework3/data/word_count.txt"
+file_path = "homework3/data/word_count.txt"
+
+def generate_count(data_path, encoding):
+    with open(data_path, 'r', encoding=encoding) as f:
+           words = f.read().split()
+    with open(data_path, 'r', encoding=encoding) as f:
+        lines = f.readlines()
+            
+        word_count = Counter(words)
+
+        with open(file_path+"word_count.txt", 'w',encoding=encoding) as f:
+            for word, count in word_count.most_common():
+                f.write(word + ' ' + str(count) + '\n')
+
+def return_dict(word_count_file,encoding='utf-8'):
+    word_dict = set()
+    with open(word_count_file, 'r', encoding=encoding) as f:
+        for line in f:
+            word = line.split('/')[0]  # 提取词语
+            if word.startswith('[') and len(word) > 1:  # 如果词语以"["开头，并且长度大于1
+                word = word[1:]  # 去除左方括号
+            word_dict.add(word)
+    return word_dict
+
+
 class BiMM:
     def __init__(self, dictionary):
         self.dictionary = dictionary
@@ -42,9 +66,9 @@ class BiMM:
 
 
 if __name__ == "__main__":
-    if not os.path.exists(file):
+    if not os.path.exists(file_path):
         generate_count(data_path, 'gbk')
-    word_dict = return_dict(file, 'gbk')
+    word_dict = return_dict(file_path, 'gbk')
     bimm = BiMM(word_dict)
     sentence = "北京大学生爱喝进口红酒"
 

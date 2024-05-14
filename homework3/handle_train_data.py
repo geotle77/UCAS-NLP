@@ -10,28 +10,6 @@ import re
 data_path = "homework3/PKU_TXT/ChineseCorpus199801.txt"
 file_path = "homework3/data/"
 
-def generate_count(data_path, encoding):
-    with open(data_path, 'r', encoding=encoding) as f:
-           words = f.read().split()
-    with open(data_path, 'r', encoding=encoding) as f:
-        lines = f.readlines()
-            
-        word_count = Counter(words)
-
-        with open(file_path+"word_count.txt", 'w',encoding=encoding) as f:
-            for word, count in word_count.most_common():
-                f.write(word + ' ' + str(count) + '\n')
-
-def return_dict(word_count_file,encoding='utf-8'):
-    word_dict = set()
-    with open(word_count_file, 'r', encoding=encoding) as f:
-        for line in f:
-            word = line.split('/')[0]  # 提取词语
-            if word.startswith('[') and len(word) > 1:  # 如果词语以"["开头，并且长度大于1
-                word = word[1:]  # 去除左方括号
-            word_dict.add(word)
-    return word_dict
-
 def generate_bmes_dataset(file_path, encoding):
     # 读取语料库文件
     with open(file_path+'word_count.txt', 'r', encoding=encoding) as f:
@@ -59,8 +37,6 @@ def generate_bmes_dataset(file_path, encoding):
             f.write(item + '\n')
             
 if __name__ == "__main__":
-    if not os.path.exists(file_path+"word_count.txt"):
-        generate_count(data_path, 'gbk')
     if not os.path.exists(file_path+"bmes_dataset.txt"):
         generate_bmes_dataset(file_path, 'gbk')
 
