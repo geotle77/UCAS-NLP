@@ -34,7 +34,7 @@ def infer(model,text,tokenizer,id2label):
 
     print("tokennize sequence:","|".join(words))
 
-text = "北京大学生爱喝进口红酒"
+text = "迈向充满希望的新世纪，一九九八年新年讲话"
 model = config = BertConfig.from_pretrained('bert-base-chinese', num_labels=5)
 model = BertForTokenClassification(config)
 model.load_state_dict(torch.load(para_path + "best.pth"))

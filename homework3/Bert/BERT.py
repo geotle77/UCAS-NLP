@@ -102,8 +102,8 @@ def evaluate(model, data_loader):
     true_labels, pred_labels = [], []
 
     for batch_data in data_loader:
-        input_ids, token_type_ids, labels = batch_data[0].to(device), batch_data[1].to(device), batch_data[2].to(device)
-        outputs = model(input_ids=input_ids, token_type_ids=token_type_ids)
+        input_ids, token_type_ids, labels, attention_mask = batch_data[0].to(device), batch_data[1].to(device), batch_data[2].to(device), batch_data[3].to(device)
+        outputs = model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         logits = outputs.logits
         predictions = torch.argmax(logits, dim=-1)
 
@@ -137,9 +137,9 @@ def train(model):
     
     for epoch in range(num_epochs):
         for step,batch_data in enumerate(train_loader):
-            input_ids, token_type_ids, labels = batch_data[0].to(device), batch_data[1].to(device), batch_data[2].to(device)
+            input_ids, token_type_ids, labels ,attention_mask = batch_data[0].to(device), batch_data[1].to(device), batch_data[2].to(device), batch_data[3].to(device)
             
-            outputs = model(input_ids=input_ids, token_type_ids=token_type_ids)
+            outputs = model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
             logits = outputs.logits
             loss = loss_fn(logits.view(-1, model.num_labels), labels.view(-1))
             
