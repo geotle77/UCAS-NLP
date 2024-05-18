@@ -164,13 +164,13 @@ class CRFsModel:
 
 if __name__ == "__main__":
     crf = CRFsModel()
-    crf.load_data("homework3/PKU_TXT/ChineseCorpus199801.txt")
+    # crf.load_data("homework3/PKU_TXT/ChineseCorpus199801.txt")
     if os.path.exists("./homework3/train_result/crf_model.joblib"):
         crf.load_model("./homework3/train_result/crf_model.joblib")
     else:
         crf.train()
         crf.save_model("./homework3/train_result/crf_model.joblib")
     # crf.use_user_dict("homework3/data/user_data.txt")
-    text = "我爱北京天安门"
+    text = "北京大学生爱喝进口红酒"
     words = crf.segment(text)
     print(words)

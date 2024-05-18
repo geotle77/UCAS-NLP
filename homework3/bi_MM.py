@@ -16,7 +16,7 @@ def generate_count(data_path, encoding):
             for word, count in word_count.most_common():
                 f.write(word + ' ' + str(count) + '\n')
 
-def return_dict(word_count_file,encoding='utf-8'):
+def return_dict(word_count_file,encoding='gbk'):
     word_dict = set()
     with open(word_count_file, 'r', encoding=encoding) as f:
         for line in f:

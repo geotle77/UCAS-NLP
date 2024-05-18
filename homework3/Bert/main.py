@@ -31,13 +31,14 @@ def infer(model,text,tokenizer,id2label):
 
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0].tolist()[1:-1])
     words = parsing_label_sequence(tokens, labels)
-
-    print("tokennize sequence:","|".join(words))
-
-text = "迈向充满希望的新世纪，一九九八年新年讲话"
-model = config = BertConfig.from_pretrained('bert-base-chinese', num_labels=5)
-model = BertForTokenClassification(config)
-model.load_state_dict(torch.load(para_path + "best.pth"))
-tokenizer = AutoTokenizer.from_pretrained("bert-base-chinese")
-infer(model,text,tokenizer,id2label)
+    return "/".join(words)
+    
+if __name__ == "__main__":
+    text = "迈向充满希望的新世纪，一九九八年新年讲话"
+    model = config = BertConfig.from_pretrained('bert-base-chinese', num_labels=5)
+    model = BertForTokenClassification(config)
+    model.load_state_dict(torch.load(para_path + "best.pth"))
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-chinese")
+    result = infer(model,text,tokenizer,id2label)
+    print(result)
 
