@@ -17,7 +17,7 @@ result_path = "./homework3/result/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--text", type=str, help="input text file",default="./homework3/data/processed_test.txt")
-parser.add_argument("--model", type=str, help="choose model to segment: bi_MM, CRFs, Bert",default="bi_MM")
+parser.add_argument("--model", type=str, help="choose model to segment: bi_MM, CRFs, Bert",default="CRFs")
 parser.add_argument("--is_eval",type=str,help="whether to evaluate the model",default=False)
 args = parser.parse_args()
 
@@ -88,6 +88,7 @@ squeeze = bpe.bpe(segments)
 
 for i in range(5):
     print("Input text: ", text[i])
+    print("tokenized text: ", real_values[i])
     print("Result: ", result[i])
     print("zip: ",squeeze[i])
 
