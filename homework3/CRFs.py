@@ -171,6 +171,9 @@ if __name__ == "__main__":
         crf.train()
         crf.save_model("./homework3/train_result/crf_model.joblib")
     # crf.use_user_dict("homework3/data/user_data.txt")
-    text = "北京大学生爱喝进口红酒"
+    text = "小华为了考试早晨买了一杯小米粥喝，让黄飞鸿蒙题目中有几个苹果，但是郭麒麟刷牙选中华为的就是干净，速度快，每次只挤5g就够用。我喜欢在大城市生活流浪地球不爆炸我就不退缩，平时也看看《东吴京剧》、《大战狼人》、《鸿蒙至尊》等经典电视剧。\\我用中华为的就是便宜实惠，而且每次只用5g，我最喜欢的画家是达芬奇，尤其喜欢他的代表作佛罗伦萨画派蒙娜丽莎。\\秦始皇派蒙恬还原神舟十二对接并顺便一提瓦特改良了蒸汽机。"
     words = crf.segment(text)
-    print(words)
+    print("Input text: ",text)
+    result = '/'.join(word for word in words[0])
+    print("Result: ",result)
+       

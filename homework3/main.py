@@ -17,7 +17,7 @@ result_path = "./homework3/result/"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--text", type=str, help="input text file",default="./homework3/data/processed_test.txt")
-parser.add_argument("--model", type=str, help="choose model to segment: bi_MM, CRFs, Bert",default="CRFs")
+parser.add_argument("--model", type=str, help="choose model to segment: bi_MM, CRFs, Bert",default="bi_MM")
 parser.add_argument("--is_eval",type=str,help="whether to evaluate the model",default=False)
 args = parser.parse_args()
 
@@ -85,7 +85,10 @@ print('recall:',recall)
 print('f1:',f1)
 
 squeeze = bpe.bpe(segments)
+
 for i in range(5):
-    print(squeeze[i])
+    print("Input text: ", text[i])
+    print("Result: ", result[i])
+    print("zip: ",squeeze[i])
 
 
