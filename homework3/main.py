@@ -76,20 +76,24 @@ elif args.model == "Bert":
 #     print("Result: ", result[i])
 #     print("-----------------------------")
 
-vocab, freq = bpe.get_vocab(5000, file_path)
-sentences, real_values = bpe.wash_test(vocab, data_path+"test.txt")
+vocab = bpe.get_vocab( file_path)
+sentences, real_values = bpe.wash_test(data_path+"test.txt")
 segments = [item.replace("/"," ") for item in result]
 accuracy,recall,f1= bpe.evaluate(segments, real_values)
 print('accuracy:',accuracy)
 print('recall:',recall)
 print('f1:',f1)
 
-squeeze = bpe.bpe(segments)
+zip_result= []
+bpe_model = bpe.bpe(vocab)
+for line in text:
+        zip_result.append(bpe_model.bi_directional_max_matching(line))
 
 for i in range(5):
     print("Input text: ", text[i])
     print("tokenized text: ", real_values[i])
     print("Result: ", result[i])
-    print("zip: ",squeeze[i])
+    print("BPE Result: ", zip_result[i])
+
 
 

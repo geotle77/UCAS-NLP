@@ -1,22 +1,47 @@
 import re
+import collections
+from bi_MM import BiMM
 data_path = './homework3/data/'
 file_path = './homework3/PKU_TXT/ChineseCorpus199801.txt'
 
 
-def get_vocab(vocab_size, file_path):
+def get_vocab( file_path):
+    vocab = collections.defaultdict(int) 
     with open(data_path+"word_count.txt", 'r', encoding='gbk') as f:
         lines = f.readlines()
-        vocab = []
-        freq = []
         for line in lines:
-            if len(vocab) >= vocab_size:
-                break
             word, count = line.split()
-            vocab.append(word)
-            freq.append(int(count))
-    return vocab, freq
+            word = re.sub(r'/\w*', '', word)
+            vocab[' '.join(list(word)) + '</w>'] = int(count)
+    return vocab
 
-def wash_test(vocab,data_path):
+def get_stats(vocab):
+    pairs = collections.defaultdict(int)
+    for word, freq in vocab.items():
+        symbols = word.split()
+        for i in range(len(symbols) - 1):
+            pairs[symbols[i], symbols[i + 1]] += freq
+    return pairs
+
+
+def merge_vocab(pair, v_in):
+    v_out = {}
+    bigram = re.escape(' '.join(pair))
+    p = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
+    for word in v_in:
+        w_out = p.sub(''.join(pair), word)
+        v_out[w_out] = v_in[word]
+    return v_out
+
+def get_tokens(vocab):
+    tokens = collections.defaultdict(int)
+    for word, freq in vocab.items():
+        word_tokens = word.split()
+        for token in word_tokens:
+            tokens[token] += freq
+    return tokens
+
+def wash_test(data_path):
     sentences = [[]]
     real_values = [[]]
     with open(data_path,'r',encoding='GBK')as f:
@@ -38,38 +63,23 @@ def wash_test(vocab,data_path):
     return sentences,real_values
 
 
-def bpe(segments):
+def bpe(vocab):
     # 使用BPE算法进行子词压缩
-    squeeze = []
-    for segment in segments:
-        segment = segment.split()
-        while True:
-            # 重复生成所有相邻两位的组合并统计频率
-            pairs = {}
-            for i in range(len(segment) - 1):
-                pair = segment[i] + segment[i + 1]
-                if pair not in pairs:
-                    pairs[pair] = 0
-                pairs[pair] += 1
-            # 找出频率最高的组合
-            max_pair = max(pairs, key=pairs.get)
-            # 频率最大值为1则跳出
-            if pairs[max_pair] == 1:
-                break
-            # 将频率最高的组合合并
-            new_segment = []
-            i = 0
-            while i < len(segment):
-                if i < len(segment) - 1 and segment[i] + segment[i + 1] == max_pair:
-                    new_segment.append(max_pair)
-                    i += 2
-                else:
-                    new_segment.append(segment[i])
-                    i += 1
-            segment = new_segment
-        segment = '/'.join(segment)
-        squeeze.append(segment)
-    return squeeze
+    num_merges = 100
+    dict = set()
+    for i in range(num_merges):
+        pairs = get_stats(vocab)
+        if not pairs:
+            break
+        best = max(pairs, key=pairs.get)
+        vocab = merge_vocab(best, vocab)
+    for key in vocab.keys():
+        key = re.sub(r'</\w>', '', key).replace(' ', '')
+        dict.add(key)
+    model = BiMM(dict)
+    return model
+
+        
 
 def evaluate(segments, real_values):
     right_count = 0
@@ -89,3 +99,8 @@ def evaluate(segments, real_values):
     recall = right_count / pred_count
     f1 = 2 * accuracy * recall / (accuracy + recall)
     return accuracy, recall, f1
+
+
+if __name__ == '__main__':
+    dict,char_dict = get_vocab(5000, data_path+"word_count.txt")
+
