@@ -1,4 +1,3 @@
-from main_torch import yield_tokens, text_pipeline, label_pipeline, collate_batch
 import os
 import re
 import jieba
@@ -68,17 +67,16 @@ label_pipeline = lambda x: torch.tensor(x, dtype=torch.long)
 
     
 EMBEDDING_DIM = 300 # embedding dimension
-MAX_WORDS_NUM = 20000  # 词典的个数
-embedding_matrix = np.zeros((MAX_WORDS_NUM+1, EMBEDDING_DIM)) # row 0 for 0
 with open("../data/word_vectors.pkl", "rb") as f:
     embeddings_index = pickle.load(f)
-
+embeddings_matrix = np.zeros((len(vocab)+1, EMBEDDING_DIM))
 for word, i in vocab.get_stoi().items():
     embedding_vector = embeddings_index.get(word)
-    if i < MAX_WORDS_NUM:
-        if embedding_vector is not None:
-            # Words not found in embedding index will be all-zeros.
-            embedding_matrix[i] = embedding_vector
+    if embedding_vector is not None:
+        # Words found in embedding index will be the corresponding vector.
+        embeddings_matrix[i] = embedding_vector
+    else :
+        embeddings_matrix[i] = np.random.normal(scale=0.6, size=(EMBEDDING_DIM,))
             
 
 num_class = len(labels_index)
@@ -102,7 +100,7 @@ class ConvTextClassifier(nn.Module):
         self.conv3 = nn.Conv1d(in_channels=128, out_channels=128, kernel_size=5)
         self.pool3 = nn.MaxPool1d(kernel_size=35)  # 根据实际输入长度调整
         
-        self.fc1 = nn.Linear(128, 128)
+        self.fc1 = nn.Linear(256, 128)
         self.fc2 = nn.Linear(128, num_classes)
     
     def forward(self, x):
@@ -123,7 +121,7 @@ class ConvTextClassifier(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-model = ConvTextClassifier(vocab_size, emsize, embedding_matrix, MAX_SEQUENCE_LEN, num_class).to(device)
+model = ConvTextClassifier(vocab_size+1, emsize, embeddings_matrix, MAX_SEQUENCE_LEN, num_class).to(device)
 
 def collate_batch(batch):
     label_list, text_list = [], []
@@ -137,14 +135,14 @@ def collate_batch(batch):
         text_list.append(processed_text)
 
     label_list = torch.tensor(label_list, dtype=torch.int64)
-    text_list = torch.cat(text_list)
+    text_list = torch.stack(text_list)  # 修改这里
 
     return text_list.to(device), label_list.to(device)
 
 
-EPOCHS = 15  # epoch
+EPOCHS = 1  # epoch
 LR = 5  # learning rate
-BATCH_SIZE = 128  # batch size for training
+BATCH_SIZE = 64  # batch size for training
 
 criterion = torch.nn.CrossEntropyLoss().to(device)
 optimizer = torch.optim.SGD(model.parameters(), lr=LR)
@@ -185,8 +183,8 @@ def train(dataloader):
     start_time = time.time()
 
     for idx, (text, cls) in enumerate(dataloader):
-        predited_label = model(text)
 
+        predited_label = model(text)
         optimizer.zero_grad()
         loss = criterion(predited_label, cls)
         loss.backward()
