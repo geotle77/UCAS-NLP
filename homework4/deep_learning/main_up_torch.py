@@ -140,7 +140,7 @@ def collate_batch(batch):
     return text_list.to(device), label_list.to(device)
 
 
-EPOCHS = 1  # epoch
+EPOCHS = 10  # epoch
 LR = 5  # learning rate
 BATCH_SIZE = 64  # batch size for training
 
@@ -174,7 +174,8 @@ history = {
     'epoch': [],
     'loss': [],
     'accuracy': [],
-    'valid_accuracy': []
+    'valid_accuracy': [],
+    'test_epoch':[]
 }
 def train(dataloader):
     model.train()
@@ -195,7 +196,7 @@ def train(dataloader):
         train_loss += loss.item()
         total_count += cls.size(0)
 
-        history['epoch'].append(epoch)
+        history['epoch'].append(idx)
         history['loss'].append(loss.item())
         history['accuracy'].append(total_acc/total_count)
 
@@ -218,8 +219,8 @@ def evaluate(data_loader):
     total_acc, train_loss, total_count = 0, 0, 0
 
     with torch.no_grad():
-        for idx, (text, label, offsets) in enumerate(data_loader):
-            predicted_label = model(text,offsets)
+        for idx, (text, label) in enumerate(data_loader):
+            predicted_label = model(text)
 
             loss = criterion(predicted_label, label)  # 计算loss值
             # 记录测试数据
@@ -233,6 +234,7 @@ for epoch in range(1, EPOCHS + 1):
     epoch_start_time = time.time()
     train(train_dataloader)
     accu_val, loss_val = evaluate(valid_dataloader)
+    history['test_epoch'].append(accu_val)
     history['valid_accuracy'].append(accu_val)
 
     lr = optimizer.state_dict()['param_groups'][0]['lr']
